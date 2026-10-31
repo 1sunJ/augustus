@@ -14,7 +14,8 @@
 
 #define HOTKEY_CONFIG_UNVERSIONED 0
 #define HOTKEY_CONFIG_ZOOM 1
-#define HOTKEY_CURRENT_VERSION HOTKEY_CONFIG_ZOOM
+#define HOTKEY_CONFIG_BUILD_MENUS 2
+#define HOTKEY_CURRENT_VERSION HOTKEY_CONFIG_BUILD_MENUS
 
 static const char *INI_FILENAME = "augustus-hotkeys.ini";
 
@@ -148,8 +149,37 @@ static const char *ini_keys[] = {
     "editor_empire_pick_tool",
     "game_quicksave",
     "game_quickload",
-    "close"
+    "close",
+    "build_menu_water",
+    "build_menu_health",
+    "build_menu_temples",
+    "build_menu_education",
+    "build_menu_entertainment",
+    "build_menu_administration",
+    "build_menu_engineering",
+    "build_menu_security",
+    "build_menu_industry"
 };
+
+// Actions that received a default key in HOTKEY_CONFIG_BUILD_MENUS.
+// Older hotkey files don't mention them, so their defaults are added on load.
+static const hotkey_action build_menu_actions[] = {
+    HOTKEY_BUILD_VACANT_HOUSE,
+    HOTKEY_BUILD_CLEAR_LAND,
+    HOTKEY_BUILD_ROAD,
+    HOTKEY_BUILD_ROADBLOCK,
+    HOTKEY_BUILD_MENU_WATER,
+    HOTKEY_BUILD_MENU_HEALTH,
+    HOTKEY_BUILD_MENU_TEMPLES,
+    HOTKEY_BUILD_MENU_EDUCATION,
+    HOTKEY_BUILD_MENU_ENTERTAINMENT,
+    HOTKEY_BUILD_MENU_ADMINISTRATION,
+    HOTKEY_BUILD_MENU_ENGINEERING,
+    HOTKEY_BUILD_MENU_SECURITY,
+    HOTKEY_BUILD_MENU_INDUSTRY
+};
+
+#define NUM_BUILD_MENU_ACTIONS ((int) (sizeof(build_menu_actions) / sizeof(hotkey_action)))
 
 static struct {
     hotkey_mapping default_mappings[HOTKEY_MAX_ITEMS][2];
@@ -201,9 +231,10 @@ static void init_defaults(void)
     set_mapping(KEY_TYPE_MOUSE_SCROLL_UP, KEY_MOD_NONE, HOTKEY_ZOOM_IN);
     set_mapping(KEY_TYPE_MOUSE_SCROLL_DOWN, KEY_MOD_NONE, HOTKEY_ZOOM_OUT);
     set_mapping(KEY_TYPE_MIDDLE_MOUSE_BUTTON, KEY_MOD_NONE, HOTKEY_RESET_ZOOM);
-    set_layout_mapping("R", KEY_TYPE_R, KEY_MOD_NONE, HOTKEY_ROTATE_BUILDING);
+    // R and X are taken by the build menu keys below, so these use Shift
+    set_layout_mapping("R", KEY_TYPE_R, KEY_MOD_SHIFT, HOTKEY_ROTATE_BUILDING);
     set_layout_mapping("Q", KEY_TYPE_Q, KEY_MOD_NONE, HOTKEY_BUILD_CLONE);
-    set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_NONE, HOTKEY_MOTHBALL_TOGGLE);
+    set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_SHIFT, HOTKEY_MOTHBALL_TOGGLE);
     set_mapping(KEY_TYPE_1, KEY_MOD_NONE, HOTKEY_SHOW_ADVISOR_LABOR);
     set_mapping(KEY_TYPE_2, KEY_MOD_NONE, HOTKEY_SHOW_ADVISOR_MILITARY);
     set_mapping(KEY_TYPE_3, KEY_MOD_NONE, HOTKEY_SHOW_ADVISOR_IMPERIAL);
@@ -257,6 +288,19 @@ static void init_defaults(void)
     set_mapping(KEY_TYPE_F12, KEY_MOD_CTRL, HOTKEY_SAVE_CITY_SCREENSHOT);
     set_mapping(KEY_TYPE_F12, KEY_MOD_SHIFT, HOTKEY_SAVE_MINIMAP_SCREENSHOT);
     set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_CTRL, HOTKEY_EDITOR_EMPIRE_DELETE_OBJECT);
+    set_layout_mapping("H", KEY_TYPE_H, KEY_MOD_NONE, HOTKEY_BUILD_VACANT_HOUSE);
+    set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_NONE, HOTKEY_BUILD_CLEAR_LAND);
+    set_layout_mapping("R", KEY_TYPE_R, KEY_MOD_NONE, HOTKEY_BUILD_ROAD);
+    set_layout_mapping("B", KEY_TYPE_B, KEY_MOD_NONE, HOTKEY_BUILD_ROADBLOCK);
+    set_layout_mapping("A", KEY_TYPE_A, KEY_MOD_NONE, HOTKEY_BUILD_MENU_WATER);
+    set_layout_mapping("K", KEY_TYPE_K, KEY_MOD_NONE, HOTKEY_BUILD_MENU_HEALTH);
+    set_layout_mapping("G", KEY_TYPE_G, KEY_MOD_NONE, HOTKEY_BUILD_MENU_TEMPLES);
+    set_layout_mapping("S", KEY_TYPE_S, KEY_MOD_NONE, HOTKEY_BUILD_MENU_EDUCATION);
+    set_layout_mapping("N", KEY_TYPE_N, KEY_MOD_NONE, HOTKEY_BUILD_MENU_ENTERTAINMENT);
+    set_layout_mapping("V", KEY_TYPE_V, KEY_MOD_NONE, HOTKEY_BUILD_MENU_ADMINISTRATION);
+    set_layout_mapping("E", KEY_TYPE_E, KEY_MOD_NONE, HOTKEY_BUILD_MENU_ENGINEERING);
+    set_layout_mapping("M", KEY_TYPE_M, KEY_MOD_NONE, HOTKEY_BUILD_MENU_SECURITY);
+    set_layout_mapping("I", KEY_TYPE_I, KEY_MOD_NONE, HOTKEY_BUILD_MENU_INDUSTRY);
 }
 
 const hotkey_mapping *hotkey_for_action(hotkey_action action, int index)
@@ -312,6 +356,33 @@ static void add_mapping(int hotkey_id, const char *value)
     if (key_combination_from_name(value, &mapping.key, &mapping.modifiers)) {
         mapping.action = hotkey_id;
         hotkey_config_add_mapping(&mapping);
+    }
+}
+
+static int is_key_in_use(key_type key, key_modifier_type modifiers)
+{
+    for (int i = 0; i < data.num_mappings; i++) {
+        if (data.mappings[i].key == key && data.mappings[i].modifiers == modifiers) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void add_build_menu_defaults(void)
+{
+    for (int i = 0; i < NUM_BUILD_MENU_ACTIONS; i++) {
+        hotkey_action action = build_menu_actions[i];
+        if (hotkey_for_action(action, 0)) {
+            continue;
+        }
+        for (int index = 0; index < 2; index++) {
+            const hotkey_mapping *mapping = hotkey_default_for_action(action, index);
+            // Never take a key away from an action the player has already set up
+            if (mapping->key && !is_key_in_use(mapping->key, mapping->modifiers)) {
+                hotkey_config_add_mapping(mapping);
+            }
+        }
     }
 }
 
@@ -385,6 +456,9 @@ static void load_file(void)
         hotkey_config_add_mapping(hotkey_default_for_action(HOTKEY_ZOOM_IN, 0));
         hotkey_config_add_mapping(hotkey_default_for_action(HOTKEY_ZOOM_OUT, 0));
         hotkey_config_add_mapping(hotkey_default_for_action(HOTKEY_RESET_ZOOM, 0));
+    }
+    if (version < HOTKEY_CONFIG_BUILD_MENUS) {
+        add_build_menu_defaults();
     }
 }
 
