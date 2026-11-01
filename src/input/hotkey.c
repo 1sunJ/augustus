@@ -554,6 +554,14 @@ static void set_definition_for_action(hotkey_action action, hotkey_definition *d
             def->action = &data.hotkey_state.build_menu;
             def->value = BUILD_MENU_INDUSTRY;
             break;
+        case HOTKEY_BUILD_MENU_CLEAR_LAND:
+            def->action = &data.hotkey_state.build_menu;
+            def->value = BUILD_MENU_CLEAR_LAND;
+            break;
+        case HOTKEY_BUILD_MENU_ROAD:
+            def->action = &data.hotkey_state.build_menu;
+            def->value = BUILD_MENU_ROAD;
+            break;
         default:
             def->action = 0;
     }

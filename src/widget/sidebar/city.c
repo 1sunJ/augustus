@@ -104,8 +104,8 @@ static image_button buttons_top_expanded[] = {
 // Same order as the first 12 entries of buttons_build_collapsed and buttons_build_expanded
 static const hotkey_action build_button_hotkeys[] = {
     HOTKEY_BUILD_VACANT_HOUSE,
-    HOTKEY_BUILD_CLEAR_LAND,
-    HOTKEY_BUILD_ROAD,
+    HOTKEY_BUILD_MENU_CLEAR_LAND,
+    HOTKEY_BUILD_MENU_ROAD,
     HOTKEY_BUILD_MENU_WATER,
     HOTKEY_BUILD_MENU_HEALTH,
     HOTKEY_BUILD_MENU_TEMPLES,

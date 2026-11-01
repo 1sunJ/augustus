@@ -2392,6 +2392,8 @@ static translation_string all_strings[] = {
     {TR_TERRAIN_BEACH_DESC, "고운 모래가 깔린 해변입니다. 경관이 아름다워 산책을 즐기는 시민들이 느긋하게 거닐며, 도시에 풍부한 모래와 점토를 제공합니다."},
     /* Korean-specific building name retained from the supplied translation. */
     {TR_FIX_KOREAN_BUILDING_DOCTORS_CLINIC, "진료소"},
+    {TR_HOTKEY_BUILD_MENU_CLEAR_LAND, "철거 메뉴"},
+    {TR_HOTKEY_BUILD_MENU_ROAD, "도로 메뉴"},
 };
 
 void translation_korean(const translation_string **strings, int *num_strings)

@@ -15,7 +15,8 @@
 #define HOTKEY_CONFIG_UNVERSIONED 0
 #define HOTKEY_CONFIG_ZOOM 1
 #define HOTKEY_CONFIG_BUILD_MENUS 2
-#define HOTKEY_CURRENT_VERSION HOTKEY_CONFIG_BUILD_MENUS
+#define HOTKEY_CONFIG_ROAD_CLEAR_LAND_MENUS 3
+#define HOTKEY_CURRENT_VERSION HOTKEY_CONFIG_ROAD_CLEAR_LAND_MENUS
 
 static const char *INI_FILENAME = "augustus-hotkeys.ini";
 
@@ -158,10 +159,12 @@ static const char *ini_keys[] = {
     "build_menu_administration",
     "build_menu_engineering",
     "build_menu_security",
-    "build_menu_industry"
+    "build_menu_industry",
+    "build_menu_clear_land",
+    "build_menu_road"
 };
 
-// Actions that received a default key in HOTKEY_CONFIG_BUILD_MENUS.
+// Actions that received a default key in HOTKEY_CONFIG_BUILD_MENUS or later.
 // Older hotkey files don't mention them, so their defaults are added on load.
 static const hotkey_action build_menu_actions[] = {
     HOTKEY_BUILD_VACANT_HOUSE,
@@ -176,7 +179,9 @@ static const hotkey_action build_menu_actions[] = {
     HOTKEY_BUILD_MENU_ADMINISTRATION,
     HOTKEY_BUILD_MENU_ENGINEERING,
     HOTKEY_BUILD_MENU_SECURITY,
-    HOTKEY_BUILD_MENU_INDUSTRY
+    HOTKEY_BUILD_MENU_INDUSTRY,
+    HOTKEY_BUILD_MENU_CLEAR_LAND,
+    HOTKEY_BUILD_MENU_ROAD
 };
 
 #define NUM_BUILD_MENU_ACTIONS ((int) (sizeof(build_menu_actions) / sizeof(hotkey_action)))
@@ -289,8 +294,9 @@ static void init_defaults(void)
     set_mapping(KEY_TYPE_F12, KEY_MOD_SHIFT, HOTKEY_SAVE_MINIMAP_SCREENSHOT);
     set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_CTRL, HOTKEY_EDITOR_EMPIRE_DELETE_OBJECT);
     set_layout_mapping("H", KEY_TYPE_H, KEY_MOD_NONE, HOTKEY_BUILD_VACANT_HOUSE);
-    set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_NONE, HOTKEY_BUILD_CLEAR_LAND);
-    set_layout_mapping("R", KEY_TYPE_R, KEY_MOD_NONE, HOTKEY_BUILD_ROAD);
+    // Clear land and road have their own menus in Augustus, so X and R open them like the other categories
+    set_layout_mapping("X", KEY_TYPE_X, KEY_MOD_NONE, HOTKEY_BUILD_MENU_CLEAR_LAND);
+    set_layout_mapping("R", KEY_TYPE_R, KEY_MOD_NONE, HOTKEY_BUILD_MENU_ROAD);
     set_layout_mapping("B", KEY_TYPE_B, KEY_MOD_NONE, HOTKEY_BUILD_ROADBLOCK);
     set_layout_mapping("A", KEY_TYPE_A, KEY_MOD_NONE, HOTKEY_BUILD_MENU_WATER);
     set_layout_mapping("K", KEY_TYPE_K, KEY_MOD_NONE, HOTKEY_BUILD_MENU_HEALTH);
@@ -457,7 +463,7 @@ static void load_file(void)
         hotkey_config_add_mapping(hotkey_default_for_action(HOTKEY_ZOOM_OUT, 0));
         hotkey_config_add_mapping(hotkey_default_for_action(HOTKEY_RESET_ZOOM, 0));
     }
-    if (version < HOTKEY_CONFIG_BUILD_MENUS) {
+    if (version < HOTKEY_CONFIG_ROAD_CLEAR_LAND_MENUS) {
         add_build_menu_defaults();
     }
 }
